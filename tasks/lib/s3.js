@@ -89,12 +89,12 @@ exports.init = function (grunt) {
     var client = knox.createClient(_.pick(options, [
       'region', 'endpoint', 'port', 'key', 'secret', 'access', 'bucket', 'secure', 'headers', 'style'
     ]));
-    client.putFile = wrapEventFunction(client.putFile);
-    client.headFile = wrapEventFunction(client.headFile);
+    client.putFile = wrapEventFunction('putFile', client.putFile);
+    client.headFile = wrapEventFunction('headFile', client.headFile);
     return client;
   };
 
-  var wrapEventFunction = function(old) {
+  var wrapEventFunction = function(functionName, old) {
     function _arrayClone(array) {
       return Array.prototype.slice.call(array);
     }
@@ -103,7 +103,10 @@ exports.init = function (grunt) {
       var args = _arrayClone(arguments);
       var self = this;
       var callback = args[args.length - 1];
-      operation.attempt(function(att) {
+      operation.attempt(function(attemptNumber) {
+        if (attemptNumber > 1) {
+          console.log('Retry ' + attemptNumber + ' for function ' + functionName + '(' + JSON.stringify(args.slice(0, -1)) + ')');
+        }
         var attemptCallback = underscore.once(function(err, result) {
           if (operation.retry(err)) {
             return;
