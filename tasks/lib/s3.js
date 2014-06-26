@@ -105,7 +105,8 @@ exports.init = function (grunt) {
       var callback = args[args.length - 1];
       operation.attempt(function(attemptNumber) {
         if (attemptNumber > 1) {
-          console.log('Retry ' + attemptNumber + ' for function ' + functionName + '(' + JSON.stringify(args.slice(0, -1)) + ')');
+          var message = 'Attempt ' + attemptNumber + ' for function ' + functionName + '(' + JSON.stringify(args.slice(0, -1)) + ')';
+          grunt.log.writeln(message.yellow);
         }
         var attemptCallback = underscore.once(function(err, result) {
           if (operation.retry(err)) {
