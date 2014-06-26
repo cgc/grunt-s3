@@ -90,6 +90,7 @@ exports.init = function (grunt) {
       'region', 'endpoint', 'port', 'key', 'secret', 'access', 'bucket', 'secure', 'headers', 'style'
     ]));
     client.putFile = wrapEventFunction(client.putFile);
+    client.headFile = wrapEventFunction(client.headFile);
     return client;
   };
 
@@ -488,7 +489,7 @@ exports.init = function (grunt) {
           upload.then( dfd.resolve, dfd.reject );
         });
       });
-    }).end();
+    });
 
     return dfd.promise();
   };
