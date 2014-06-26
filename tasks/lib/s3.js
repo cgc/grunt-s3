@@ -76,6 +76,9 @@ exports.init = function (grunt) {
     return options;
   };
 
+  var underscore = require('underscore');
+  var retry = require('retry');
+
   /**
    * Create an s3 client. Returns an Knox instance.
    *
@@ -83,9 +86,37 @@ exports.init = function (grunt) {
    * @returns {Object}
    */
   var makeClient = exports.makeClient = function(options) {
-    return knox.createClient(_.pick(options, [
+    var client = knox.createClient(_.pick(options, [
       'region', 'endpoint', 'port', 'key', 'secret', 'access', 'bucket', 'secure', 'headers', 'style'
     ]));
+    client.putFile = wrapEventFunction(client.putFile);
+    return client;
+  };
+
+  var wrapEventFunction = function(old) {
+    function _arrayClone(array) {
+      return Array.prototype.slice.call(array);
+    }
+    return function() {
+      var operation = retry.operation();
+      var args = _arrayClone(arguments);
+      var self = this;
+      var callback = args[args.length - 1];
+      operation.attempt(function(att) {
+        var attemptCallback = underscore.once(function(err, result) {
+          if (operation.retry(err)) {
+            return;
+          }
+          callback(err ? operation.mainError() : null, result);
+        });
+        var argsCopy = _arrayClone(args);
+        argsCopy[argsCopy.length - 1] = attemptCallback;
+        var eventEmitter = old.apply(self, argsCopy);
+        eventEmitter.on('error', function(err) {
+          attemptCallback(err);
+        });
+      });
+    };
   };
 
   /**

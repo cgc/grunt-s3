@@ -33,10 +33,12 @@
   ],
   "dependencies": {
     "grunt": "0.4.x",
-    "underscore.deferred": "~0.1.4",
     "knox": "0.8.x",
     "mime": "~1.2.5",
-    "temporary": "0.0.8"
+    "retry": "~0.6.0",
+    "temporary": "0.0.8",
+    "underscore": "~1.6.0",
+    "underscore.deferred": "~0.1.4"
   },
   "devDependencies": {
     "nodeunit": "~0.7.4",
